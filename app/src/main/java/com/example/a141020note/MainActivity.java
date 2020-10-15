@@ -1,12 +1,15 @@
 package com.example.a141020note;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Canvas;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
@@ -15,10 +18,12 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.view.MenuInflater;
 import android.view.View;
 
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.SearchView;
 import android.widget.Toast;
 
 import java.util.List;
@@ -32,6 +37,15 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXTRA_DATA_ID = "extra_data_id";
 
     private NoteViewModel noteViewModel;
+
+    private NoteListAdapter adapter;
+
+    public MainActivity() {
+
+    }
+    public MainActivity(NoteListAdapter adapter) {
+        this.adapter = adapter;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +66,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //Recycler View
+        adapter = new NoteListAdapter(this);
         RecyclerView recyclerView = findViewById(R.id.recyclerview);
-        final NoteListAdapter adapter = new NoteListAdapter(this);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -79,17 +93,41 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction){
-                        int position = viewHolder.getAdapterPosition();
-                        Note myNote = adapter.getNoteAtPosition(position);
-                        Toast.makeText(MainActivity.this,"Deleting "+
-                                myNote.getNote(), Toast.LENGTH_LONG).show();
+                    public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction){
 
-                        noteViewModel.deleteNote(myNote);
+                        new AlertDialog.Builder(viewHolder.itemView.getContext())
+                                .setMessage("Are you sure to delete?")
+                                .setPositiveButton("Yes", new DialogInterface.OnClickListener(){
+                                    public void onClick(DialogInterface dialog, int id){
+
+                                        int position = viewHolder.getAdapterPosition();
+                                        Note myNote = adapter.getNoteAtPosition(position);
+                                        Toast.makeText(MainActivity.this,"Deleting "+
+                                                myNote.getNote(), Toast.LENGTH_LONG).show();
+
+                                        noteViewModel.deleteNote(myNote);
+                                    }
+                                })
+                                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        //cancel to delete
+                                        adapter.notifyItemChanged(viewHolder.getAdapterPosition());
+                                    }
+                                })
+                                .create()
+                                .show();
+
 
                     }
-                }
-        );
+
+                    @Override
+                    public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                        super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
+
+
+                    }
+                });
 
         helper.attachToRecyclerView(recyclerView);
 
@@ -103,11 +141,34 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
+
+        //Search
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.search_menu,menu);
+
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        SearchView searchView = (SearchView) searchItem.getActionView();
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                adapter.getFilter().filter(s);
+                return false;
+            }
+        });
+
+
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override

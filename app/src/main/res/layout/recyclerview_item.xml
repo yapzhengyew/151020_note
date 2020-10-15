@@ -14,11 +14,5 @@
         android:elevation="8dp"
         tools:text="placeholder text" />
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        app:srcCompat="@android:drawable/ic_menu_delete" />
 
 </LinearLayout>
