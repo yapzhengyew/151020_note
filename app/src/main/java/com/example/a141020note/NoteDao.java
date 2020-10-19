@@ -1,6 +1,8 @@
 package com.example.a141020note;
 
 
+import android.database.Cursor;
+
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
@@ -32,7 +34,7 @@ public interface NoteDao {
     @Update
     void update(Note... note);
 
-    @Query("SELECT * FROM note_table WHERE note LIKE '%search%'")
-    List<Note> getSearchNote();
+    @Query("SELECT * FROM note_table WHERE UPPER(note) LIKE '%' || :search || '%' ORDER BY id DESC")
+    LiveData<List<Note>> getSearchNote(String search);
 
 }

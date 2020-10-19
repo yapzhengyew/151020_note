@@ -42,7 +42,7 @@ public abstract class NoteRoomDatabase extends RoomDatabase {
 
     private static class PopulateDbAsync extends AsyncTask<Void, Void, Void> {
         private final NoteDao dao;
-        String[] notes = {"dolphin","crocodile","cobra"};
+//        String[] notes = {"dolphin","crocodile","cobra"};
 
         PopulateDbAsync(NoteRoomDatabase db){
             dao = db.noteDao();
@@ -50,12 +50,12 @@ public abstract class NoteRoomDatabase extends RoomDatabase {
 
         @Override
         protected  Void doInBackground(final Void... params){
-            if (dao.getAnyNote().length < 1){
-                for (int i = 0; i <= notes.length -1; i++){
-                    Note note = new Note(notes[i]);
-                    dao.insert(note);
-                }
-            }
+//            if (dao.getAnyNote().length < 1){
+//                for (int i = 0; i <= notes.length -1; i++){
+//                    Note note = new Note(notes[i]);
+//                    dao.insert(note);
+//                }
+//            }
 
             return null;
         }

@@ -2,9 +2,5 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.example.a141020note.MainActivity">
-    <item
-        android:id="@+id/clear_data"
-        android:orderInCategory="100"
-        android:title="@string/clear_all_data"
-        app:showAsAction="never" />
+
 </menu>

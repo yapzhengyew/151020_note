@@ -1,16 +1,25 @@
 package com.example.a141020note;
 
 import android.app.Application;
+import android.content.Context;
+import android.database.Cursor;
 import android.os.AsyncTask;
+import android.text.method.HideReturnsTransformationMethod;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
+import androidx.room.Room;
+import androidx.room.RoomDatabase;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 
 public class NoteRepository {
 
     private NoteDao noteDao;
     private LiveData<List<Note>> allNotes;
+    private LiveData<List<Note>> searchNotes;
 
     NoteRepository(Application application){
         NoteRoomDatabase db = NoteRoomDatabase.getDatabase(application);
@@ -21,6 +30,53 @@ public class NoteRepository {
     LiveData<List<Note>> getAllNotes(){
         return allNotes;
     }
+
+    public LiveData<List<Note>> getSearchNote(String search){
+        searchNotes = noteDao.getSearchNote(search);
+
+        return searchNotes;
+    }
+
+//    private static NoteRoomDatabase noteRoomDatabase;
+//    private static final Object LOCK = new Object();
+//    private synchronized static NoteRoomDatabase getNotesDatabase(Context context) {
+//        if (noteRoomDatabase == null){
+//            synchronized (LOCK){
+//                if (noteRoomDatabase == null){
+//                    noteRoomDatabase = Room.databaseBuilder(context, NoteRoomDatabase.class, "note_database")
+//                            .fallbackToDestructiveMigration()
+//                            .addCallback(dbCallback).build();
+//                }
+//            }
+//        }
+//        return noteRoomDatabase;
+//    }
+//
+//    public NoteDao getNotesDao(Context context){
+//        return getNotesDatabase(context).noteDao();
+//    }
+//
+//
+//
+//    public LiveData<List<Note>> getSearchNoteInfo(Context context, String query){
+//        return getNotesDao(context).getSearchNote(query);
+//    }
+//
+//    public Cursor getNotesCursor(Context context, String query){
+//        return getNotesDao(context).getNotesCursor(query);
+//    }
+//
+//    private static RoomDatabase.Callback dbCallback = new RoomDatabase.Callback() {
+//        @Override
+//        public void onCreate(@NonNull SupportSQLiteDatabase db) {
+//            super.onCreate(db);
+//        }
+//
+//        @Override
+//        public void onOpen(@NonNull SupportSQLiteDatabase db) {
+//            super.onOpen(db);
+//        }
+//    };
 
     public void insert (Note note){
         new insertAsyncTask(noteDao).execute(note);

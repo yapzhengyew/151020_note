@@ -4,19 +4,16 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Filter;
-import android.widget.Filterable;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteViewHolder> implements Filterable {
+public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteViewHolder>{ //implements Filterable {
     private final LayoutInflater inflater;
     private List<Note> notes;
-    private List<Note> notesSearch;
+
 
     private static ClickListener clickListener;
 
@@ -42,7 +39,7 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
 
     void setNotes(List<Note> note){
         notes = note;
-        notesSearch = new ArrayList<>(note);
+        //notesSearch = note;
         notifyDataSetChanged();
     }
 
@@ -81,41 +78,42 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
         void onItemClick(View v, int position);
     }
 
-    @Override
-    public Filter getFilter(){
-        return notesFilter;
-    }
 
-    private Filter notesFilter = new Filter(){
-
-        @Override
-        protected FilterResults performFiltering(CharSequence charSequence) {
-            List<Note> filteredList = new ArrayList<>();
-
-            if (charSequence == null || charSequence.length() == 0){
-                filteredList.addAll(notesSearch);
-            }else {
-                String filterPattern = charSequence.toString().toLowerCase().trim();
-
-                for (Note note : notesSearch){
-                    if (note.getNote().toLowerCase().contains(filterPattern)){
-                        filteredList.add(note);
-                    }
-                }
-            }
-            FilterResults results = new FilterResults();
-            results.values = filteredList;
-
-            return results;
-
-        }
-
-        @Override
-        protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
-            notes.clear();
-            notes.addAll((List)filterResults.values);
-            notifyDataSetChanged();
-        }
-    };
+//    @Override
+//    public Filter getFilter(){
+//        return notesFilter;
+//    }
+//
+//    private Filter notesFilter = new Filter(){
+//
+//        @Override
+//        protected FilterResults performFiltering(CharSequence charSequence) {
+//            List<Note> filteredList = new ArrayList<>();
+//
+//            if (charSequence == null || charSequence.length() == 0){
+//                filteredList.addAll(notesSearch);
+//            }else {
+//                String filterPattern = charSequence.toString().toLowerCase().trim();
+//
+//                for (Note note : notesSearch){
+//                    if (note.getNote().toLowerCase().contains(filterPattern)){
+//                        filteredList.add(note);
+//                    }
+//                }
+//            }
+//            FilterResults results = new FilterResults();
+//            results.values = filteredList;
+//
+//            return results;
+//
+//        }
+//
+//        @Override
+//        protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+//            notes.clear();
+//            notes.addAll((List)filterResults.values);
+//            notifyDataSetChanged();
+//        }
+//    };
 
 }

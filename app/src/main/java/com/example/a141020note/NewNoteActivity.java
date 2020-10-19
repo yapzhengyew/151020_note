@@ -37,6 +37,15 @@ public class NewNoteActivity extends AppCompatActivity {
             }
         }
 
+        //set title
+        Intent intent = getIntent();
+        if (intent.hasExtra(EXTRA_DATA_UPDATE_NOTE)){
+            setTitle("Edit Note");
+        } else {
+            setTitle("Add Note");
+        }
+
+
         final Button button = findViewById(R.id.button_save);
 
         button.setOnClickListener(new View.OnClickListener() {

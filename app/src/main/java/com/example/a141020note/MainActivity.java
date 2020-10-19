@@ -3,6 +3,9 @@ package com.example.a141020note;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -12,6 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -23,6 +27,8 @@ import android.view.View;
 
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Toast;
 
@@ -40,12 +46,18 @@ public class MainActivity extends AppCompatActivity {
 
     private NoteListAdapter adapter;
 
-    public MainActivity() {
+    private SearchView searchView;
+    //private ListView listView;
+    //private NoteRepository noteRepository = new NoteRepository();
 
-    }
-    public MainActivity(NoteListAdapter adapter) {
-        this.adapter = adapter;
-    }
+    private ColorDrawable swipeBackground = new ColorDrawable(Color.parseColor("#FF5656"));
+    private Drawable deleteIcon;
+//    public MainActivity() {
+//
+//    }
+//    public MainActivity(NoteListAdapter adapter) {
+//        this.adapter = adapter;
+//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        //listView = findViewById(R.id.search_results_list);
 
         //Floating action button
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -81,7 +95,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
         //Swipe to delete
+        deleteIcon = ContextCompat.getDrawable(this,R.drawable.ic_delete);
+
         ItemTouchHelper helper = new ItemTouchHelper(
                 new ItemTouchHelper.SimpleCallback(0,
                         ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT){
@@ -123,9 +140,35 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+
+                        View itemView = viewHolder.itemView;
+
+                        int iconMargin = (itemView.getHeight()-deleteIcon.getIntrinsicHeight()) / 2 - 30;
+
+                        if (dX > 0){
+                            swipeBackground.setBounds(itemView.getLeft(), itemView.getTop()+30, (int) dX, itemView.getBottom());
+                            deleteIcon.setBounds(itemView.getLeft() + iconMargin -10,itemView.getTop()+iconMargin+30,
+                                    itemView.getLeft()+iconMargin+deleteIcon.getIntrinsicWidth()+10,itemView.getBottom()-iconMargin);
+                        } else {
+                            swipeBackground.setBounds(itemView.getRight() + (int) dX, itemView.getTop()+30, itemView.getRight(), itemView.getBottom());
+                            deleteIcon.setBounds(itemView.getRight() - iconMargin - deleteIcon.getIntrinsicWidth() -10 ,itemView.getTop()+iconMargin+30,
+                                    itemView.getRight()-iconMargin+10,itemView.getBottom()-iconMargin);
+
+                        }
+
+                        swipeBackground.draw(c);
+
+                        c.save();
+
+                        if (dX > 0){
+                            c.clipRect(itemView.getLeft(), itemView.getTop()+30, (int) dX, itemView.getBottom());
+                        } else {
+                            c.clipRect(itemView.getRight() + (int) dX, itemView.getTop()+30, itemView.getRight(), itemView.getBottom());
+                        }
+                        deleteIcon.draw(c);
+                        c.restore();
+
                         super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
-
-
                     }
                 });
 
@@ -145,31 +188,110 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        //getMenuInflater().inflate(R.menu.menu_main, menu);
 
         //Search
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.search_menu,menu);
 
-        MenuItem searchItem = menu.findItem(R.id.action_search);
-        SearchView searchView = (SearchView) searchItem.getActionView();
+        searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        //searchView.setSubmitButtonEnabled(true);
+        //searchView.setOnQueryTextListener(onQueryTextListener);
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
-            public boolean onQueryTextSubmit(String s) {
+            public boolean onQueryTextSubmit(final String s) {
+                noteViewModel.getSearchNotes(s);
                 return false;
             }
 
             @Override
-            public boolean onQueryTextChange(String s) {
-                adapter.getFilter().filter(s);
+            public boolean onQueryTextChange(final String s) {
+                //adapter.getFilter().filter(s);
+
+
+                //noteViewModel.getSearchNotes(s);
+
+
+                if(s.length() <= 0){
+                    noteViewModel = ViewModelProviders.of(MainActivity.this).get(NoteViewModel.class);
+
+                    noteViewModel.getAllNotes().observe(MainActivity.this, new Observer<List<Note>>() {
+                        @Override
+                        public void onChanged(@Nullable List<Note> notes) {
+                            adapter.setNotes(notes);
+                        }
+                    });
+                } else {
+                    noteViewModel = ViewModelProviders.of(MainActivity.this).get(NoteViewModel.class);
+
+                    noteViewModel.getSearchNotes(s).observe(MainActivity.this, new Observer<List<Note>>() {
+                        @Override
+                        public void onChanged(@Nullable List<Note> notes) {
+                            adapter.setNotes(notes);
+                        }
+                    });
+                }
+
+
+                //if (s == NULL) 
+
+
+//                new Thread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        NoteRoomDatabase.getDatabase(getApplicationContext())
+//                                .noteDao()
+//                                .getSearchNote(s);
+//
+//                        //Log(info+ searchList.toString());
+//
+//                    }
+//                }).start();
+
+//                noteViewModel.getSearchNotes(s).observe(MainActivity.this, new Observer<List<Note>>() {
+//                    @Override
+//                    public void onChanged(@Nullable List<Note> notes) {
+//                        adapter.setNotes(notes);
+//                    }
+//                });
+
                 return false;
             }
+
         });
-
-
         return super.onCreateOptionsMenu(menu);
+
     }
+
+//    private SearchView.OnQueryTextListener onQueryTextListener = new SearchView.OnQueryTextListener() {
+//        @Override
+//        public boolean onQueryTextSubmit(String s) {
+//            getNotesFromDb(s);
+//            return true;
+//        }
+//
+//        @Override
+//        public boolean onQueryTextChange(String s) {
+//            getNotesFromDb(s);
+//            return true;
+//        }
+//
+//        private void getNotesFromDb(String searchText){
+//            searchText = "%"+searchText+"%";
+//            noteRepository.getSearchNoteInfo(MainActivity.this,searchText)
+//                    .observe(MainActivity.this, new Observer<List<Note>>(){
+//                        @Override
+//                        public void onChanged(@Nullable List<Note> notes) {
+//                            if (notes == null){
+//                                return;
+//                            }
+//                            NoteListAdapter adapter = new NoteListAdapter(MainActivity.this);
+//                            listView.setAdapter((ListAdapter) adapter);
+//                        }
+//                    });
+//        }
+//    };
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
